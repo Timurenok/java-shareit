@@ -12,8 +12,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("select item " +
             "from Item as item " +
-            "where (lower(item.name) like lower(concat('%', ?1, '%')) " +
-            "or lower(item.description) like lower(concat('%', ?1, '%'))) " +
+            "where (lower(item.name) like lower(concat('%', :text, '%')) " +
+            "or lower(item.description) like lower(concat('%', :text, '%'))) " +
             "and item.available = true")
     List<Item> findByText(String text);
 }

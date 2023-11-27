@@ -9,6 +9,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 
     @Modifying
-    @Query("delete from User as user where user.id = ?1")
+    @Query("delete " +
+            "from User as user " +
+            "where user.id = :id")
     void deleteById(Long id);
 }

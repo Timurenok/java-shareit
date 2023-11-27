@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.*;
+import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.User;
@@ -23,6 +24,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemService itemService;
     private final UserService userService;
+    private final ItemMapper itemMapper;
 
     @Override
     @Transactional
@@ -156,6 +158,6 @@ public class BookingServiceImpl implements BookingService {
         if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
             throw new InvalidTimeException("Booking can't finish before the beginning");
         }
-        return BookingMapper.mapToBooking(bookingDto, itemDto, booker);
+        return BookingMapper.mapToBooking(bookingDto, ItemMapper.mapToItem(itemDto), booker);
     }
 }
