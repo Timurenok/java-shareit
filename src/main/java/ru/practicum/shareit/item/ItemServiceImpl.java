@@ -75,19 +75,31 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto find(Long id, Long userId) {
+        Item item = itemRepository.findById(id).orElseThrow(() -> new UnknownItemException(
+                String.format("Item with id %d does not exist", id)));
         Booking lastBooking = bookingRepository.findFirstByItemIdAndEndIsBeforeOrderByEndDesc(id, LocalDateTime.now());
         Booking nextBooking = bookingRepository.findFirstByItemIdAndStartIsAfterOrderByStartAsc(id,
                 LocalDateTime.now());
-        if ((lastBooking == null || nextBooking == null) ||
-                !itemRepository.findById(id).get().getOwnerId().equals(userId)) {
-            return ItemMapper.mapToItemDto(Optional.ofNullable(itemRepository.findById(id).orElseThrow(() ->
-                    new UnknownItemException(String.format("Item with id %d does not exist", id)))).get(),
-                    null,
+        if (!item.getOwnerId().equals(userId)) {
+            return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
+        }
+        if (lastBooking == null && nextBooking == null) {
+            return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
+        }
+        if (lastBooking != null && nextBooking == null) {
+            return ItemMapper.mapToItemDto(item,
+                    BookingMapper.mapToBookingDto(lastBooking),
                     null,
                     findCommentsByItemId(id));
         }
-        return ItemMapper.mapToItemDto(Optional.ofNullable(itemRepository.findById(id).orElseThrow(() ->
-                new UnknownItemException(String.format("Item with id %d does not exist", id)))).get(),
+        if (lastBooking == null && nextBooking != null) {
+            return ItemMapper.mapToItemDto(Optional.ofNullable(itemRepository.findById(id).orElseThrow(() ->
+                            new UnknownItemException(String.format("Item with id %d does not exist", id)))).get(),
+                    null,
+                    BookingMapper.mapToBookingDto(nextBooking),
+                    findCommentsByItemId(id));
+        }
+        return ItemMapper.mapToItemDto(item,
                 BookingMapper.mapToBookingDto(lastBooking),
                 BookingMapper.mapToBookingDto(nextBooking),
                 findCommentsByItemId(id));
