@@ -80,23 +80,19 @@ public class ItemServiceImpl implements ItemService {
         Booking lastBooking = bookingRepository.findFirstByItemIdAndEndIsBeforeOrderByEndDesc(id, LocalDateTime.now());
         Booking nextBooking = bookingRepository.findFirstByItemIdAndStartIsAfterOrderByStartAsc(id,
                 LocalDateTime.now());
-        if (!item.getOwnerId().equals(userId)) {
+        if ((lastBooking == null && nextBooking == null) || !item.getOwnerId().equals(userId)) {
             return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
         }
-        if (lastBooking == null && nextBooking == null) {
-            return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
+        if (lastBooking == null && nextBooking != null) {
+            return ItemMapper.mapToItemDto(item,
+                    null,
+                    BookingMapper.mapToBookingDto(nextBooking),
+                    findCommentsByItemId(id));
         }
-        if (lastBooking != null && nextBooking == null) {
+        if (nextBooking == null && lastBooking != null) {
             return ItemMapper.mapToItemDto(item,
                     BookingMapper.mapToBookingDto(lastBooking),
                     null,
-                    findCommentsByItemId(id));
-        }
-        if (lastBooking == null && nextBooking != null) {
-            return ItemMapper.mapToItemDto(Optional.ofNullable(itemRepository.findById(id).orElseThrow(() ->
-                            new UnknownItemException(String.format("Item with id %d does not exist", id)))).get(),
-                    null,
-                    BookingMapper.mapToBookingDto(nextBooking),
                     findCommentsByItemId(id));
         }
         return ItemMapper.mapToItemDto(item,
