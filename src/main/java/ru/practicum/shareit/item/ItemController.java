@@ -3,7 +3,6 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
@@ -17,18 +16,17 @@ import java.util.List;
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
-    private final BookingService bookingService;
 
     @PostMapping
-    public Item saveItem(@RequestBody Item item, @RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public ItemDto saveItem(@RequestBody Item item, @RequestHeader("X-Sharer-User-Id") Long ownerId) {
         log.info("Creating item {}", item);
         return itemService.save(item, ownerId);
     }
 
     @PatchMapping("{id}")
-    public Item updateItem(@PathVariable Long id,
-                           @RequestBody Item item,
-                           @RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public ItemDto updateItem(@PathVariable Long id,
+                              @RequestBody Item item,
+                              @RequestHeader("X-Sharer-User-Id") Long ownerId) {
         log.info("Updating item {}", item);
         return itemService.update(id, item, ownerId);
     }
@@ -46,7 +44,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<Item> findItemByText(@RequestParam String text) {
+    public List<ItemDto> findItemByText(@RequestParam String text) {
         log.info("Getting items by text {}", text);
         return itemService.findByText(text);
     }

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingInputDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -16,6 +18,7 @@ import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +27,18 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemService itemService;
     private final UserService userService;
-    private final ItemMapper itemMapper;
 
     @Override
     @Transactional
-    public Booking save(BookingDto bookingDto, Long bookerId) {
-        Booking booking = check(bookingDto, bookerId);
+    public BookingDto save(BookingInputDto bookingInputDto, Long bookerId) {
+        Booking booking = check(bookingInputDto, bookerId);
         bookingRepository.save(booking);
-        return booking;
+        return BookingMapper.mapToBookingDto(booking);
     }
 
     @Override
     @Transactional
-    public Booking update(Long id, Long ownerId, Boolean approved) {
+    public BookingDto update(Long id, Long ownerId, Boolean approved) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new InvalidBookingException(String.format("Booking with id %d does not exist", id)));
         userService.find(ownerId);
@@ -51,113 +53,142 @@ public class BookingServiceImpl implements BookingService {
         } else {
             booking.setStatus(BookingStatus.REJECTED);
         }
-        return bookingRepository.save(booking);
+        bookingRepository.save(booking);
+        return BookingMapper.mapToBookingDto(booking);
     }
 
     @Override
     @Transactional
-    public Booking findById(Long userId, Long id) {
+    public BookingDto findById(Long userId, Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new UnknownBookingException(String.format("Booking with id %d does not exist", id)));
         userService.find(userId);
         if (booking.getBooker().getId().equals(userId) ||
                 booking.getItem().getOwnerId().equals(userId)) {
-            return booking;
+            return BookingMapper.mapToBookingDto(booking);
         }
         throw new UnknownUserException("You don't have abilities to see this booking");
     }
 
     @Override
     @Transactional
-    public List<Booking> findByUserId(Long bookerId, String state) {
+    public List<BookingDto> findByUserId(Long bookerId, String state) {
         userService.find(bookerId);
         LocalDateTime now = LocalDateTime.now();
         if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByBookerIdOrderByStartDesc(bookerId);
+            return bookingRepository.findByBookerIdOrderByStartDesc(bookerId).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.CURRENT.toString())) {
-            return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(bookerId, now, now);
+            return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(bookerId, now, now)
+                    .stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.PAST.toString())) {
-            return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now);
+            return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(bookerId, now);
+            return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(bookerId, now).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
-            return bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.valueOf(state));
+            return bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.valueOf(state)).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         throw new InvalidStateException(String.format("Unknown state: %s", state));
     }
 
     @Override
     @Transactional
-    public List<Booking> findByOwnerId(Long ownerId, String state) {
+    public List<BookingDto> findByOwnerId(Long ownerId, String state) {
         userService.find(ownerId);
         LocalDateTime now = LocalDateTime.now();
         if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId);
+            return bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.CURRENT.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(ownerId, now, now);
+            return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(ownerId, now, now)
+                    .stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.PAST.toString())) {
-            return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now);
+            return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(ownerId, now);
+            return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(ownerId, now).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         if (state.equals(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.valueOf(state));
+            return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.valueOf(state)).stream()
+                    .map(BookingMapper::mapToBookingDto)
+                    .collect(Collectors.toList());
         }
         throw new InvalidStateException(String.format("Unknown state: %s", state));
     }
 
     @Override
-    public BookingDto findLastBooking(Long itemId) {
-        return BookingMapper.mapToBookingDto(
-                bookingRepository.findFirstByItemIdAndEndIsBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
+    public BookingShortDto findLastBooking(Long itemId) {
+        return BookingMapper.mapToBookingShortDto(
+                bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
     }
 
     @Override
-    public BookingDto findNextBooking(Long itemId) {
-        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndStartIsAfterOrderByStartAsc(itemId,
+    public BookingShortDto findNextBooking(Long itemId) {
+        return BookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(
+                itemId,
                 LocalDateTime.now()));
     }
 
     @Override
-    public Booking findBookingWithUserBookedItem(Long itemId, Long userId) {
-        return bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(itemId, userId,
-                LocalDateTime.now(), BookingStatus.APPROVED);
+    public BookingDto findBookingWithUserBookedItem(Long itemId, Long userId) {
+        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(itemId, userId,
+                LocalDateTime.now(), BookingStatus.APPROVED));
     }
 
-    private Booking check(BookingDto bookingDto, Long bookerId) {
+    private Booking check(BookingInputDto bookingInputDto, Long bookerId) {
+        Booking booking = new Booking();
         User booker = userService.find(bookerId);
-        ItemDto itemDto = itemService.find(bookingDto.getItemId(), bookerId);
-        bookingDto.setStatus(BookingStatus.WAITING);
+        ItemDto itemDto = itemService.find(bookingInputDto.getItemId(), bookerId);
+        booking.setStart(bookingInputDto.getStart());
+        booking.setEnd(bookingInputDto.getEnd());
+        booking.setItem(ItemMapper.mapToItem(itemDto));
+        booking.setBooker(booker);
+        booking.setStatus(BookingStatus.WAITING);
         if (itemDto.getOwnerId().equals(bookerId)) {
             throw new UnknownBookingException("You can't book your item");
         }
         if (!itemDto.getAvailable()) {
             throw new InvalidAvailableException("You can't book this item because it has already booked");
         }
-        if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
+        if (booking.getStart() == null || booking.getEnd() == null) {
             throw new InvalidTimeException("Time can't be empty");
         }
-        if (bookingDto.getStart().equals(bookingDto.getEnd())) {
+        if (booking.getStart().equals(booking.getEnd())) {
             throw new InvalidTimeException("Start can't be similar to end");
         }
-        if (bookingDto.getStart().isBefore(LocalDateTime.now())) {
+        if (booking.getStart().isBefore(LocalDateTime.now())) {
             throw new InvalidTimeException("Booking can't start in the past");
         }
-        if (bookingDto.getEnd().isBefore(LocalDateTime.now())) {
+        if (booking.getEnd().isBefore(LocalDateTime.now())) {
             throw new InvalidTimeException("Booking can't end in the past");
         }
-        if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
+        if (booking.getEnd().isBefore(booking.getStart())) {
             throw new InvalidTimeException("Booking can't finish before the beginning");
         }
-        return BookingMapper.mapToBooking(bookingDto, ItemMapper.mapToItem(itemDto), booker);
+        return booking;
     }
 }

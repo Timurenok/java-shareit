@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.dto.BookingInputDto;
 
 import java.util.List;
 
@@ -16,13 +16,13 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public Booking saveBooking(@RequestBody BookingDto bookingDto, @RequestHeader("X-Sharer-User-Id") Long bookerId) {
-        log.info("Creating booking {}", bookingDto);
-        return bookingService.save(bookingDto, bookerId);
+    public BookingDto saveBooking(@RequestBody BookingInputDto bookingInputDto, @RequestHeader("X-Sharer-User-Id") Long bookerId) {
+        log.info("Creating booking {}", bookingInputDto);
+        return bookingService.save(bookingInputDto, bookerId);
     }
 
     @PatchMapping("/{id}")
-    public Booking updateBooking(@PathVariable Long id,
+    public BookingDto updateBooking(@PathVariable Long id,
                                  @RequestHeader("X-Sharer-User-Id") Long ownerId,
                                  @RequestParam Boolean approved) {
         log.info("Updating booking with id {}", id);
@@ -30,14 +30,14 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public Booking findById(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public BookingDto findById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                          @PathVariable Long id) {
         log.info("Getting booking with id {}", id);
         return bookingService.findById(userId, id);
     }
 
     @GetMapping
-    List<Booking> findByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
+    List<BookingDto> findByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
                               @RequestParam(value = "state", defaultValue = "ALL", required = false)
                               String state) {
         log.info("Getting bookings of booker with id {}", userId);
@@ -45,7 +45,7 @@ public class BookingController {
     }
 
     @GetMapping("/owner")
-    public List<Booking> findByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public List<BookingDto> findByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId,
                                       @RequestParam(value = "state", defaultValue = "ALL", required = false)
                                       String state) {
         log.info("Getting bookings of owner with id {}", userId);

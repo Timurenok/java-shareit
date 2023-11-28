@@ -8,15 +8,15 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 
 public interface ItemService {
-    Item save(Item item, Long ownerId);
+    ItemDto save(Item item, Long ownerId);
 
-    Item update(Long id, Item item, Long ownerId);
+    ItemDto update(Long id, Item item, Long ownerId);
 
     ItemDto find(Long id, Long userId);
 
     List<ItemDto> findByUserId(Long userId);
 
-    List<Item> findByText(String text);
+    List<ItemDto> findByText(String text);
 
     CommentDto saveComment(Long id, Long authorId, Comment comment);
 
