@@ -9,18 +9,6 @@ import ru.practicum.shareit.booking.model.Booking;
 @Component
 public final class BookingMapper {
 
-    public static Booking mapToBooking(BookingDto bookingDto, Long id) {
-        if (bookingDto != null) {
-            return new Booking(id,
-                    bookingDto.getStart(),
-                    bookingDto.getEnd(),
-                    bookingDto.getItem(),
-                    bookingDto.getBooker(),
-                    bookingDto.getStatus());
-        }
-        return null;
-    }
-
     public static BookingDto mapToBookingDto(Booking booking) {
         if (booking != null) {
             return new BookingDto(booking.getId(),

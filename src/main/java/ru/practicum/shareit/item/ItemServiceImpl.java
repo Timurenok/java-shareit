@@ -78,10 +78,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto find(Long id, Long userId) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new UnknownItemException(
                 String.format("Item with id %d does not exist", id)));
-        Booking lastBooking = bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(id,
+        Booking lastBooking = bookingRepository.findFirstByItemIdAndStartIsBeforeOrderByEndDesc(id,
                 LocalDateTime.now());
-        Booking nextBooking = bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(id,
-                LocalDateTime.now());
+        Booking nextBooking = bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(id,
+                LocalDateTime.now(), List.of(BookingStatus.WAITING, BookingStatus.APPROVED));
         if (!item.getOwnerId().equals(userId)) {
             return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
         }

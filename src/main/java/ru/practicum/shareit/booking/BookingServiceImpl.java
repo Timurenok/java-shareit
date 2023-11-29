@@ -143,19 +143,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingShortDto findLastBooking(Long itemId) {
         return BookingMapper.mapToBookingShortDto(
-                bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
+                bookingRepository.findFirstByItemIdAndStartIsBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
     }
 
     @Override
     public BookingShortDto findNextBooking(Long itemId) {
-        return BookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(
+        return BookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(
                 itemId,
-                LocalDateTime.now()));
+                LocalDateTime.now(), List.of(BookingStatus.WAITING, BookingStatus.APPROVED)));
     }
 
     @Override
     public BookingDto findBookingWithUserBookedItem(Long itemId, Long userId) {
-        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(itemId, userId,
+        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(
+                itemId,
+                userId,
                 LocalDateTime.now(), BookingStatus.APPROVED));
     }
 
