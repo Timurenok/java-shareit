@@ -1,13 +1,43 @@
 package ru.practicum.shareit.user;
 
-import lombok.Data;
+import lombok.*;
 
+import javax.persistence.*;
 import javax.validation.constraints.Email;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
+@Entity
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "users", schema = "public")
 public class User {
-    private long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name")
     private String name;
+
     @Email
+    @Column(name = "email")
     private String email;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+                Objects.equals(name, user.name) &&
+                Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, email);
+    }
 }

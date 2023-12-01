@@ -1,19 +1,20 @@
 package ru.practicum.shareit.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.InvalidEmailException;
-import ru.practicum.shareit.exception.InvalidNameException;
-import ru.practicum.shareit.exception.UnknownUserException;
-import ru.practicum.shareit.exception.UsedEmailException;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.*;
 
 import java.util.*;
 
 @Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final Map<Long, User> users = new HashMap<>();
-    private static long id = 1;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public User save(User user) {
         if (user.getEmail() == null) {
             throw new InvalidEmailException("Email can't be empty");
@@ -24,49 +25,54 @@ public class UserServiceImpl implements UserService {
         if (!user.getEmail().contains("@")) {
             throw new InvalidEmailException(String.format("Wrong format of email %s", user.getEmail()));
         }
-        if (users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()))) {
+        if (userRepository.findByEmail(user.getEmail()) != null) {
+            userRepository.save(user);
             throw new UsedEmailException(String.format("User with email %s already exists", user.getEmail()));
         }
-        user.setId(generateId());
-        users.put(user.getId(), user);
+        userRepository.save(user);
         return user;
     }
 
     @Override
-    public User update(User user, long id) {
-        user.setId(id);
+    @Transactional
+    public User update(User user, Long id) {
         find(id);
+        user.setId(id);
         if (user.getEmail() == null) {
-            user.setEmail(users.get(id).getEmail());
+            user.setEmail(userRepository.findById(id).get().getEmail());
         }
         if (user.getName() == null) {
-            if (users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail())
-                    && u.getId() != user.getId())) {
+            user.setName(userRepository.findById(id).get().getName());
+            if (userRepository.findByEmail(user.getEmail()) != null
+                    && !userRepository.findByEmail(user.getEmail()).getId().equals(id)) {
                 throw new UsedEmailException(String.format("User with email %s already exists", user.getEmail()));
             }
-            user.setName(users.get(id).getName());
         }
-        users.put(id, user);
+        userRepository.save(user);
         return user;
     }
 
     @Override
-    public User find(long id) {
-        return Optional.ofNullable(users.get(id)).orElseThrow(() -> new UnknownUserException(
-                String.format("User with id %d does not exist", id)));
+    @Transactional
+    public User find(Long id) {
+        return Optional.ofNullable(userRepository.findById(id).orElseThrow(() -> new UnknownUserException(
+                String.format("User with id %d does not exist", id)))).get();
     }
 
     @Override
+    @Transactional
     public List<User> findAll() {
-        return new ArrayList<>(users.values());
+        return userRepository.findAll();
     }
 
     @Override
-    public User remove(long id) {
-        return users.remove(id);
-    }
-
-    private long generateId() {
-        return id++;
+    @Transactional
+    public User remove(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            userRepository.deleteById(id);
+            return user.get();
+        }
+        throw new UnknownUserException(String.format("User with id %d does not exist", id));
     }
 }
