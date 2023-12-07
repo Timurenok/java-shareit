@@ -78,6 +78,12 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidSizeException(final InvalidSizeException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleUnknownUserException(final UnknownUserException e) {
         return new ErrorResponse(e.getMessage());
@@ -86,6 +92,12 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleUnknownItemException(final UnknownItemException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleUnknownItemRequestException(final UnknownItemRequestException e) {
         return new ErrorResponse(e.getMessage());
     }
 

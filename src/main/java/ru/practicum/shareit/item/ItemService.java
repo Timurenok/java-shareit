@@ -18,6 +18,8 @@ public interface ItemService {
 
     List<ItemDto> findByText(String text);
 
+    List<ItemDto> findByRequestId(Long requestId);
+
     CommentDto saveComment(Long id, Long authorId, Comment comment);
 
     List<CommentDto> findCommentsByItemId(Long itemId);
