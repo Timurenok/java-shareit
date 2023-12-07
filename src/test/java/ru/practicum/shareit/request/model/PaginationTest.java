@@ -27,16 +27,16 @@ public class PaginationTest {
     public void shouldReturnPageWhenSizeLessFrom() {
         Pagination pagination = new Pagination(2, 1);
         assertThat(pagination.getIndex()).isEqualTo(1);
-        assertThat(pagination.getPageSize()).isEqualTo(1);
-        assertThat(pagination.getAmountOfPages()).isEqualTo(1);
+        assertThat(pagination.getPageSize()).isEqualTo(2);
+        assertThat(pagination.getAmountOfPages()).isEqualTo(2);
     }
 
     @Test
     public void shouldReturnPageWhenSizeMoreFrom() {
         Pagination pagination = new Pagination(1, 2);
         assertThat(pagination.getIndex()).isEqualTo(1);
-        assertThat(pagination.getPageSize()).isEqualTo(2);
-        assertThat(pagination.getAmountOfPages()).isEqualTo(1);
+        assertThat(pagination.getPageSize()).isEqualTo(1);
+        assertThat(pagination.getAmountOfPages()).isEqualTo(3);
     }
 
     @Test
@@ -44,7 +44,7 @@ public class PaginationTest {
         Pagination pagination = new Pagination(1, 1);
         assertThat(pagination.getIndex()).isEqualTo(1);
         assertThat(pagination.getPageSize()).isEqualTo(1);
-        assertThat(pagination.getAmountOfPages()).isEqualTo(1);
+        assertThat(pagination.getAmountOfPages()).isEqualTo(2);
     }
 
     @Test
