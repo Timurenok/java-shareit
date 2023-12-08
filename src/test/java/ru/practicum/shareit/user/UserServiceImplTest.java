@@ -8,8 +8,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.shareit.exception.InvalidEmailException;
-import ru.practicum.shareit.exception.InvalidNameException;
 import ru.practicum.shareit.exception.InvalidUserException;
 import ru.practicum.shareit.exception.UnknownUserException;
 import ru.practicum.shareit.user.dto.UserDto;
