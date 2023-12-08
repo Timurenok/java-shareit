@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
         if (user.getName() == null) {
             user.setName(userRepository.findById(id).get().getName());
             if (userRepository.findByEmail(user.getEmail()) != null
-                    && userRepository.findByEmail(user.getEmail()).getId().equals(id)) {
+                    && !userRepository.findByEmail(user.getEmail()).getId().equals(id)) {
                 throw new UsedEmailException(String.format("User with email %s already exists", user.getEmail()));
             }
         }

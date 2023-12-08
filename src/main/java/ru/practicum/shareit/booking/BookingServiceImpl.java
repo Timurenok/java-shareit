@@ -84,11 +84,10 @@ public class BookingServiceImpl implements BookingService {
         userService.find(bookerId);
         List<BookingDto> listBookingDto = new ArrayList<>();
         Pageable pageable;
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
         Page<Booking> page;
         Pagination pager = new Pagination(from, size);
         if (size == null) {
-            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), sort);
+            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), Sort.by("start").descending());
             do {
                 page = findByUserIdByPages(bookerId, state, pageable);
                 listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
@@ -96,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
             } while (page.hasNext());
         } else {
             for (int i = pager.getIndex(); i < pager.getAmountOfPages(); i++) {
-                pageable = PageRequest.of(i, pager.getPageSize(), sort);
+                pageable = PageRequest.of(i, pager.getPageSize(), Sort.by("start").descending());
                 page = findByUserIdByPages(bookerId, state, pageable);
                 listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
                 if (!page.hasNext()) {
@@ -114,11 +113,10 @@ public class BookingServiceImpl implements BookingService {
         userService.find(ownerId);
         List<BookingDto> listBookingDto = new ArrayList<>();
         Pageable pageable;
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
         Page<Booking> page;
         Pagination pager = new Pagination(from, size);
         if (size == null) {
-            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), sort);
+            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), Sort.by("start").descending());
             do {
                 page = findByOwnerIdByPages(ownerId, state, pageable);
                 listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
@@ -126,8 +124,7 @@ public class BookingServiceImpl implements BookingService {
             } while (page.hasNext());
         } else {
             for (int i = pager.getIndex(); i < pager.getAmountOfPages(); i++) {
-                pageable =
-                        PageRequest.of(i, pager.getPageSize(), sort);
+                pageable = PageRequest.of(i, pager.getPageSize(), Sort.by("start").descending());
                 page = findByOwnerIdByPages(ownerId, state, pageable);
                 listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
                 if (!page.hasNext()) {
@@ -196,7 +193,7 @@ public class BookingServiceImpl implements BookingService {
     private Page<Booking> findByUserIdByPages(Long bookerId, String state, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
         if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByBookerIdOrderByStartDesc(bookerId, pageable);
+            return bookingRepository.findByBookerId(bookerId, pageable);
         }
         if (state.equals(BookingState.CURRENT.toString())) {
             return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
@@ -206,7 +203,7 @@ public class BookingServiceImpl implements BookingService {
             return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now, pageable);
         }
         if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(bookerId, now, pageable);
+            return bookingRepository.findByBookerIdAndStartIsAfter(bookerId, now, pageable);
         }
         if (state.equals(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
@@ -218,7 +215,7 @@ public class BookingServiceImpl implements BookingService {
     private Page<Booking> findByOwnerIdByPages(Long ownerId, String state, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
         if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId, pageable);
+            return bookingRepository.findByItemOwnerId(ownerId, pageable);
         }
         if (state.equals(BookingState.CURRENT.toString())) {
             return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
@@ -228,7 +225,7 @@ public class BookingServiceImpl implements BookingService {
             return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now, pageable);
         }
         if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(ownerId, now, pageable);
+            return bookingRepository.findByItemOwnerIdAndStartIsAfter(ownerId, now, pageable);
         }
         if (state.equals(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
