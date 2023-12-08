@@ -18,7 +18,6 @@ import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,40 +60,17 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     public List<ItemRequestDto> findByPages(Long requesterId, Integer from, Integer size) {
         userService.find(requesterId);
-        List<ItemRequestDto> listItemRequestDto = new ArrayList<>();
-        Pageable pageable;
-        Page<ItemRequest> page;
         Pagination pagination = new Pagination(from, size);
-        Sort sort = Sort.by(Sort.Direction.DESC, "created");
-        if (size == null) {
-            List<ItemRequest> listItemRequest = itemRequestRepository
-                    .findByRequesterIdNotOrderByCreatedDesc(requesterId);
-            listItemRequestDto = listItemRequest.stream()
-                    .skip(from)
-                    .map(request -> ItemRequestMapper.mapToItemRequestDto(request,
-                            itemRepository.findByRequestId(request.getId()).stream()
-                                    .map(item -> ItemMapper
-                                            .mapToItemDto(item, null, null, null))
-                                    .collect(Collectors.toList())))
-                    .collect(toList());
-        } else {
-            for (int i = pagination.getIndex(); i < pagination.getAmountOfPages(); i++) {
-                pageable = PageRequest.of(i, pagination.getPageSize(), sort);
-                page = itemRequestRepository.findByRequesterIdNot(requesterId, pageable);
-                listItemRequestDto = page.stream()
-                        .map(request -> ItemRequestMapper.mapToItemRequestDto(request,
-                                itemRepository.findByRequestId(request.getId()).stream()
-                                        .map(item -> ItemMapper
-                                                .mapToItemDto(item, null, null, null))
-                                        .collect(Collectors.toList())))
-                        .collect(toList());
-                if (!page.hasNext()) {
-                    break;
-                }
-            }
-            listItemRequestDto = listItemRequestDto.stream().limit(size).collect(toList());
-        }
-        return listItemRequestDto;
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("created").descending());
+        Page<ItemRequest> page = itemRequestRepository.findByRequesterIdNot(requesterId, pageable);
+        return page.stream()
+                .map(request -> ItemRequestMapper.mapToItemRequestDto(request,
+                        itemRepository.findByRequestId(request.getId()).stream()
+                                .map(item -> ItemMapper
+                                        .mapToItemDto(item, null, null, null))
+                                .collect(Collectors.toList())))
+                .collect(toList());
     }
 
     @Override

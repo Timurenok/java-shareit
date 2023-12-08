@@ -1,6 +1,9 @@
 package ru.practicum.shareit.request.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -9,7 +12,6 @@ import java.util.List;
 
 @Setter
 @Getter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemRequestDto {

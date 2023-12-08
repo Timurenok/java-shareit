@@ -23,7 +23,6 @@ import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -82,58 +81,22 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public List<BookingDto> findByUserId(Long bookerId, String state, Integer from, Integer size) {
         userService.find(bookerId);
-        List<BookingDto> listBookingDto = new ArrayList<>();
-        Pageable pageable;
-        Page<Booking> page;
-        Pagination pager = new Pagination(from, size);
-        if (size == null) {
-            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), Sort.by("start").descending());
-            do {
-                page = findByUserIdByPages(bookerId, state, pageable);
-                listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
-                pageable = pageable.next();
-            } while (page.hasNext());
-        } else {
-            for (int i = pager.getIndex(); i < pager.getAmountOfPages(); i++) {
-                pageable = PageRequest.of(i, pager.getPageSize(), Sort.by("start").descending());
-                page = findByUserIdByPages(bookerId, state, pageable);
-                listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
-                if (!page.hasNext()) {
-                    break;
-                }
-            }
-            listBookingDto = listBookingDto.stream().limit(size).collect(toList());
-        }
-        return listBookingDto;
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        Page<Booking> page = findByUserIdByPages(bookerId, state, pageable);
+        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
     @Transactional
     public List<BookingDto> findByOwnerId(Long ownerId, String state, Integer from, Integer size) {
         userService.find(ownerId);
-        List<BookingDto> listBookingDto = new ArrayList<>();
-        Pageable pageable;
-        Page<Booking> page;
-        Pagination pager = new Pagination(from, size);
-        if (size == null) {
-            pageable = PageRequest.of(pager.getIndex(), pager.getPageSize(), Sort.by("start").descending());
-            do {
-                page = findByOwnerIdByPages(ownerId, state, pageable);
-                listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
-                pageable = pageable.next();
-            } while (page.hasNext());
-        } else {
-            for (int i = pager.getIndex(); i < pager.getAmountOfPages(); i++) {
-                pageable = PageRequest.of(i, pager.getPageSize(), Sort.by("start").descending());
-                page = findByOwnerIdByPages(ownerId, state, pageable);
-                listBookingDto.addAll(page.stream().map(BookingMapper::mapToBookingDto).collect(toList()));
-                if (!page.hasNext()) {
-                    break;
-                }
-            }
-            listBookingDto = listBookingDto.stream().limit(size).collect(toList());
-        }
-        return listBookingDto;
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        Page<Booking> page = findByOwnerIdByPages(ownerId, state, pageable);
+        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
