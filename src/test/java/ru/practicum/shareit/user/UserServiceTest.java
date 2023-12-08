@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserServiceTest {
     private final UserService userService;
 
-    private final User user = new User(1L, "user", "user@gmail.com");
+    private final User user = new User(null, "user", "user@gmail.com");
 
     @Test
     void shouldReturnUserWhenGetUserById() {
@@ -34,6 +34,17 @@ class UserServiceTest {
     void shouldExceptionWhenDeleteUserWithWrongId() {
         UnknownUserException exception = assertThrows(UnknownUserException.class, () -> userService.remove(10L));
         assertEquals("User with id 10 does not exist", exception.getMessage());
+    }
+
+    @Test
+    void shouldUpdateUser() {
+        UserDto returnUserDto = userService.save(user);
+        returnUserDto.setName("new");
+        returnUserDto.setEmail("new@gmail.com");
+        userService.update(UserMapper.mapToUser(returnUserDto), returnUserDto.getId());
+        UserDto updateUserDto = userService.find(returnUserDto.getId());
+        assertThat(updateUserDto.getName(), equalTo("new"));
+        assertThat(updateUserDto.getEmail(), equalTo("new@gmail.com"));
     }
 
     @Test
