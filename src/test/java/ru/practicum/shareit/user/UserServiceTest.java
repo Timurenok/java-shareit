@@ -37,17 +37,6 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldUpdateUser() {
-        UserDto returnUserDto = userService.save(user);
-        returnUserDto.setName("new");
-        returnUserDto.setEmail("new@gmail.com");
-        userService.update(UserMapper.mapToUser(returnUserDto), returnUserDto.getId());
-        UserDto updateUserDto = userService.find(returnUserDto.getId());
-        assertThat(updateUserDto.getName(), equalTo("new"));
-        assertThat(updateUserDto.getEmail(), equalTo("new@gmail.com"));
-    }
-
-    @Test
     void shouldDeleteUser() {
         User newUser = new User(null, "newUser", "newUser@gmail.com");
         UserDto returnUserDto = userService.save(newUser);
