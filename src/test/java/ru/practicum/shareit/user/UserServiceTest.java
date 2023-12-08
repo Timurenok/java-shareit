@@ -37,17 +37,6 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldDeleteUser() {
-        User newUser = new User(null, "newUser", "newUser@gmail.com");
-        UserDto returnUserDto = userService.save(newUser);
-        List<UserDto> listUser = userService.findAll();
-        int size = listUser.size();
-        userService.remove(returnUserDto.getId());
-        listUser = userService.findAll();
-        assertThat(listUser.size(), equalTo(size - 1));
-    }
-
-    @Test
     void shouldUpdateUser() {
         UserDto returnUserDto = userService.save(user);
         returnUserDto.setName("new");
@@ -56,5 +45,16 @@ class UserServiceTest {
         UserDto updateUserDto = userService.find(returnUserDto.getId());
         assertThat(updateUserDto.getName(), equalTo("new"));
         assertThat(updateUserDto.getEmail(), equalTo("new@gmail.com"));
+    }
+
+    @Test
+    void shouldDeleteUser() {
+        User newUser = new User(null, "newUser", "newUser@gmail.com");
+        UserDto returnUserDto = userService.save(newUser);
+        List<UserDto> listUser = userService.findAll();
+        int size = listUser.size();
+        userService.remove(returnUserDto.getId());
+        listUser = userService.findAll();
+        assertThat(listUser.size(), equalTo(size - 1));
     }
 }
