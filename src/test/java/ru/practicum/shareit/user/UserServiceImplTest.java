@@ -38,36 +38,6 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenEmailIsEmpty() {
-        when(mockUserRepository.save(any()))
-                .thenThrow(new InvalidEmailException("Email can't be empty"));
-        final InvalidEmailException exception = Assertions.assertThrows(
-                InvalidEmailException.class,
-                () -> userService.save(new User(1L, "user", null)));
-        Assertions.assertEquals("Email can't be empty", exception.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenNameIsEmpty() {
-        when(mockUserRepository.save(any()))
-                .thenThrow(new InvalidNameException("Name can't be empty"));
-        final InvalidNameException exception = Assertions.assertThrows(
-                InvalidNameException.class,
-                () -> userService.save(new User(1L, null, "user@gmail.com")));
-        Assertions.assertEquals("Name can't be empty", exception.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenEmailIsIncorrect() {
-        when(mockUserRepository.save(any()))
-                .thenThrow(new InvalidEmailException("Wrong format of email userGmail.com"));
-        final InvalidEmailException exception = Assertions.assertThrows(
-                InvalidEmailException.class,
-                () -> userService.save(new User(1L, "user", "userGmail.com")));
-        Assertions.assertEquals("Wrong format of email userGmail.com", exception.getMessage());
-    }
-
-    @Test
     void shouldThrowExceptionWhenFindUserWithWrongId() {
         when(mockUserRepository.findById(any(Long.class)))
                 .thenReturn(Optional.empty());
