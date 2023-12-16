@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
@@ -112,9 +113,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
+    public List<ItemDto> findByRequestId(Long requestId) {
+        return itemRepository.findByRequestId(requestId).stream()
+                .map(item -> ItemMapper.mapToItemDto(item, null, null, null))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
     public CommentDto saveComment(Long id, Long authorId, Comment comment) {
         Item item = ItemMapper.mapToItem(find(id, authorId));
-        User author = userService.find(authorId);
+        User author = UserMapper.mapToUser(userService.find(authorId));
         if (comment.getText().isBlank()) {
             throw new InvalidCommentException("Comment can't be empty");
         }

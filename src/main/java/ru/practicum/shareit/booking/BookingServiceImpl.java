@@ -1,6 +1,10 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -13,12 +17,15 @@ import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.request.model.Pagination;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -72,72 +79,24 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public List<BookingDto> findByUserId(Long bookerId, String state) {
+    public List<BookingDto> findByUserId(Long bookerId, String state, Integer from, Integer size) {
         userService.find(bookerId);
-        LocalDateTime now = LocalDateTime.now();
-        if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByBookerIdOrderByStartDesc(bookerId).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.CURRENT.toString())) {
-            return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(bookerId, now, now)
-                    .stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.PAST.toString())) {
-            return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(bookerId, now).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.WAITING.toString()) ||
-                state.equals(BookingState.REJECTED.toString())) {
-            return bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.valueOf(state)).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        throw new InvalidStateException(String.format("Unknown state: %s", state));
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        Page<Booking> page = findByUserIdByPages(bookerId, state, pageable);
+        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
     @Transactional
-    public List<BookingDto> findByOwnerId(Long ownerId, String state) {
+    public List<BookingDto> findByOwnerId(Long ownerId, String state, Integer from, Integer size) {
         userService.find(ownerId);
-        LocalDateTime now = LocalDateTime.now();
-        if (state.equals(BookingState.ALL.toString())) {
-            return bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.CURRENT.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(ownerId, now, now)
-                    .stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.PAST.toString())) {
-            return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.FUTURE.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(ownerId, now).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(BookingState.WAITING.toString()) ||
-                state.equals(BookingState.REJECTED.toString())) {
-            return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.valueOf(state)).stream()
-                    .map(BookingMapper::mapToBookingDto)
-                    .collect(Collectors.toList());
-        }
-        throw new InvalidStateException(String.format("Unknown state: %s", state));
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        Page<Booking> page = findByOwnerIdByPages(ownerId, state, pageable);
+        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
@@ -163,7 +122,7 @@ public class BookingServiceImpl implements BookingService {
 
     private Booking check(BookingInputDto bookingInputDto, Long bookerId) {
         Booking booking = new Booking();
-        User booker = userService.find(bookerId);
+        User booker = UserMapper.mapToUser(userService.find(bookerId));
         ItemDto itemDto = itemService.find(bookingInputDto.getItemId(), bookerId);
         booking.setStart(bookingInputDto.getStart());
         booking.setEnd(bookingInputDto.getEnd());
@@ -192,5 +151,49 @@ public class BookingServiceImpl implements BookingService {
             throw new InvalidTimeException("Booking can't finish before the beginning");
         }
         return booking;
+    }
+
+    private Page<Booking> findByUserIdByPages(Long bookerId, String state, Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        if (state.equals(BookingState.ALL.toString())) {
+            return bookingRepository.findByBookerId(bookerId, pageable);
+        }
+        if (state.equals(BookingState.CURRENT.toString())) {
+            return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
+                    bookerId, now, now, pageable);
+        }
+        if (state.equals(BookingState.PAST.toString())) {
+            return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now, pageable);
+        }
+        if (state.equals(BookingState.FUTURE.toString())) {
+            return bookingRepository.findByBookerIdAndStartIsAfter(bookerId, now, pageable);
+        }
+        if (state.equals(BookingState.WAITING.toString()) ||
+                state.equals(BookingState.REJECTED.toString())) {
+            return bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.valueOf(state), pageable);
+        }
+        throw new InvalidStateException(String.format("Unknown state: %s", state));
+    }
+
+    private Page<Booking> findByOwnerIdByPages(Long ownerId, String state, Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        if (state.equals(BookingState.ALL.toString())) {
+            return bookingRepository.findByItemOwnerId(ownerId, pageable);
+        }
+        if (state.equals(BookingState.CURRENT.toString())) {
+            return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
+                    ownerId, now, now, pageable);
+        }
+        if (state.equals(BookingState.PAST.toString())) {
+            return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now, pageable);
+        }
+        if (state.equals(BookingState.FUTURE.toString())) {
+            return bookingRepository.findByItemOwnerIdAndStartIsAfter(ownerId, now, pageable);
+        }
+        if (state.equals(BookingState.WAITING.toString()) ||
+                state.equals(BookingState.REJECTED.toString())) {
+            return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.valueOf(state), pageable);
+        }
+        throw new InvalidStateException(String.format("Unknown state: %s", state));
     }
 }
