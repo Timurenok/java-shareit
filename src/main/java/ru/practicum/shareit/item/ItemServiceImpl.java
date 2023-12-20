@@ -28,6 +28,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final UserMapper userMapper;
     private final UserService userService;
+    private final BookingMapper bookingMapper;
+    private final CommentMapper commentMapper;
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
@@ -89,8 +91,8 @@ public class ItemServiceImpl implements ItemService {
             return itemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
         }
         return itemMapper.mapToItemDto(item,
-                BookingMapper.mapToBookingShortDto(lastBooking),
-                BookingMapper.mapToBookingShortDto(nextBooking),
+                bookingMapper.mapToBookingShortDto(lastBooking),
+                bookingMapper.mapToBookingShortDto(nextBooking),
                 findCommentsByItemId(id));
     }
 
@@ -137,14 +139,14 @@ public class ItemServiceImpl implements ItemService {
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
         commentRepository.save(comment);
-        return CommentMapper.mapToCommentDto(comment);
+        return commentMapper.mapToCommentDto(comment);
     }
 
     @Override
     @Transactional
     public List<CommentDto> findCommentsByItemId(Long itemId) {
         return commentRepository.findByItemId(itemId).stream()
-                .map(CommentMapper::mapToCommentDto)
+                .map(commentMapper::mapToCommentDto)
                 .collect(Collectors.toList());
     }
 
@@ -152,7 +154,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public List<CommentDto> findCommentsByAuthorId(Long authorId) {
         return commentRepository.findByAuthorId(authorId).stream()
-                .map(CommentMapper::mapToCommentDto)
+                .map(commentMapper::mapToCommentDto)
                 .collect(Collectors.toList());
     }
 }

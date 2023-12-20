@@ -29,6 +29,7 @@ import static java.util.stream.Collectors.toList;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
+    private final BookingMapper bookingMapper;
     private final ItemService itemService;
     private final UserService userService;
     private final UserMapper userMapper;
@@ -39,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto save(BookingInputDto bookingInputDto, Long bookerId) {
         Booking booking = check(bookingInputDto, bookerId);
         bookingRepository.save(booking);
-        return BookingMapper.mapToBookingDto(booking);
+        return bookingMapper.mapToBookingDto(booking);
     }
 
     @Override
@@ -60,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(BookingStatus.REJECTED);
         }
         bookingRepository.save(booking);
-        return BookingMapper.mapToBookingDto(booking);
+        return bookingMapper.mapToBookingDto(booking);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class BookingServiceImpl implements BookingService {
         userService.find(userId);
         if (booking.getBooker().getId().equals(userId) ||
                 booking.getItem().getOwnerId().equals(userId)) {
-            return BookingMapper.mapToBookingDto(booking);
+            return bookingMapper.mapToBookingDto(booking);
         }
         throw new UnknownUserException("You don't have abilities to see this booking");
     }
@@ -81,7 +82,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> findByUserId(Long bookerId, String state, Pageable pageable) {
         userService.find(bookerId);
         Page<Booking> page = findByUserIdByPages(bookerId, state, pageable);
-        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
+        return page.stream().map(bookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
@@ -89,25 +90,25 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> findByOwnerId(Long ownerId, String state, Pageable pageable) {
         userService.find(ownerId);
         Page<Booking> page = findByOwnerIdByPages(ownerId, state, pageable);
-        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
+        return page.stream().map(bookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
     public BookingShortDto findLastBooking(Long itemId) {
-        return BookingMapper.mapToBookingShortDto(
+        return bookingMapper.mapToBookingShortDto(
                 bookingRepository.findFirstByItemIdAndStartIsBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
     }
 
     @Override
     public BookingShortDto findNextBooking(Long itemId) {
-        return BookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(
+        return bookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(
                 itemId,
                 LocalDateTime.now(), List.of(BookingStatus.WAITING, BookingStatus.APPROVED)));
     }
 
     @Override
     public BookingDto findBookingWithUserBookedItem(Long itemId, Long userId) {
-        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(
+        return bookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(
                 itemId,
                 userId,
                 LocalDateTime.now(), BookingStatus.APPROVED));

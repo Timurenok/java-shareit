@@ -27,7 +27,8 @@ public class BookingServiceImplTest {
 
     @BeforeEach
     void beforeEach() {
-        bookingService = new BookingServiceImpl(mockBookingRepository, null, null, null, null);
+        bookingService = new BookingServiceImpl(mockBookingRepository, null, null, null,
+                null, null);
     }
 
     @Test
