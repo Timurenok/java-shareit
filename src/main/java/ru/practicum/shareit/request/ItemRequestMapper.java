@@ -1,6 +1,8 @@
 package ru.practicum.shareit.request;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -8,21 +10,15 @@ import ru.practicum.shareit.user.UserMapper;
 
 import java.util.List;
 
-@Component
-public class ItemRequestMapper {
+@Mapper(componentModel = "spring", uses = UserMapper.class)
+public abstract class ItemRequestMapper {
 
-    public static ItemRequest mapToItemRequest(ItemRequestDto itemRequestDto) {
-        return new ItemRequest(itemRequestDto.getId(),
-                itemRequestDto.getDescription(),
-                UserMapper.mapToUser(itemRequestDto.getRequester()),
-                itemRequestDto.getCreated());
-    }
+    @Autowired
+    protected UserMapper userMapper;
 
-    public static ItemRequestDto mapToItemRequestDto(ItemRequest itemRequest, List<ItemDto> items) {
-        return new ItemRequestDto(itemRequest.getId(),
-                itemRequest.getDescription(),
-                UserMapper.mapToUserDto(itemRequest.getRequester()),
-                itemRequest.getCreated(),
-                items);
-    }
+    @Mapping(target = "requester", expression = "java(userMapper.userDtoToUser(itemRequestDto.getRequester()))")
+    public abstract ItemRequest itemRequestDtoToItemRequest(ItemRequestDto itemRequestDto);
+
+    @Mapping(target = "requester", expression = "java(userMapper.userToUserDto(itemRequest.getRequester()))")
+    public abstract ItemRequestDto itemRequestToItemRequestDto(ItemRequest itemRequest, List<ItemDto> items);
 }

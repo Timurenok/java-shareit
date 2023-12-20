@@ -90,7 +90,7 @@ public class BookingControllerTest {
 
     @Test
     void shouldFindBookingsByOwner() throws Exception {
-        when(bookingService.findByOwnerId(any(Long.class), any(String.class), any(Integer.class), any(Integer.class)))
+        when(bookingService.findByOwnerId(any(Long.class), any(String.class), any()))
                 .thenReturn(listBookingDto);
 
         mvc.perform(get("/bookings/owner?from=0&size=10")

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserServiceTest {
     private final UserService userService;
+    private final UserMapper userMapper;
 
     private final User user = new User(null, "user", "user@gmail.com");
 
@@ -41,7 +42,7 @@ class UserServiceTest {
         UserDto returnUserDto = userService.save(user);
         returnUserDto.setName("new");
         returnUserDto.setEmail("new@gmail.com");
-        userService.update(UserMapper.mapToUser(returnUserDto), returnUserDto.getId());
+        userService.update(userMapper.userDtoToUser(returnUserDto), returnUserDto.getId());
         UserDto updateUserDto = userService.find(returnUserDto.getId());
         assertThat(updateUserDto.getName(), equalTo("new"));
         assertThat(updateUserDto.getEmail(), equalTo("new@gmail.com"));

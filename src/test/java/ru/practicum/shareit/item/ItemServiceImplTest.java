@@ -21,7 +21,7 @@ public class ItemServiceImplTest {
 
     @Test
     void shouldExceptionWhenFindItemWithWrongId() {
-        ItemService itemService = new ItemServiceImpl(null, mockItemRepository, null, null);
+        ItemService itemService = new ItemServiceImpl(null, null, null, mockItemRepository, null, null);
         when(mockItemRepository.findById(any(Long.class)))
                 .thenReturn(Optional.empty());
         final UnknownItemException exception = Assertions.assertThrows(

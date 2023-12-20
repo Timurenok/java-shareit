@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
+    private final ItemMapper itemMapper;
+    private final UserMapper userMapper;
     private final UserService userService;
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
@@ -47,7 +49,7 @@ public class ItemServiceImpl implements ItemService {
         }
         item.setOwnerId(ownerId);
         itemRepository.save(item);
-        return ItemMapper.mapToItemDto(item, null, null, null);
+        return itemMapper.mapToItemDto(item, null, null, null);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
                     item.setAvailable(itemRepository.findById(id).get().getAvailable());
                 }
                 itemRepository.save(item);
-                return ItemMapper.mapToItemDto(item, null, null, null);
+                return itemMapper.mapToItemDto(item, null, null, null);
             }
             throw new UnknownUserException("You don't have an ability to change this item");
         }
@@ -84,9 +86,9 @@ public class ItemServiceImpl implements ItemService {
         Booking nextBooking = bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(id,
                 LocalDateTime.now(), List.of(BookingStatus.WAITING, BookingStatus.APPROVED));
         if (!item.getOwnerId().equals(userId)) {
-            return ItemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
+            return itemMapper.mapToItemDto(item, null, null, findCommentsByItemId(id));
         }
-        return ItemMapper.mapToItemDto(item,
+        return itemMapper.mapToItemDto(item,
                 BookingMapper.mapToBookingShortDto(lastBooking),
                 BookingMapper.mapToBookingShortDto(nextBooking),
                 findCommentsByItemId(id));
@@ -107,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
         return itemRepository.findByText(text).stream()
-                .map(item -> ItemMapper.mapToItemDto(item, null, null, null))
+                .map(item -> itemMapper.mapToItemDto(item, null, null, null))
                 .collect(Collectors.toList());
     }
 
@@ -115,15 +117,15 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public List<ItemDto> findByRequestId(Long requestId) {
         return itemRepository.findByRequestId(requestId).stream()
-                .map(item -> ItemMapper.mapToItemDto(item, null, null, null))
+                .map(item -> itemMapper.mapToItemDto(item, null, null, null))
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public CommentDto saveComment(Long id, Long authorId, Comment comment) {
-        Item item = ItemMapper.mapToItem(find(id, authorId));
-        User author = UserMapper.mapToUser(userService.find(authorId));
+        Item item = itemMapper.mapToItem(find(id, authorId));
+        User author = userMapper.userDtoToUser(userService.find(authorId));
         if (comment.getText().isBlank()) {
             throw new InvalidCommentException("Comment can't be empty");
         }

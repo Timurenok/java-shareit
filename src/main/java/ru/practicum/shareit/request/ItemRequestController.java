@@ -2,8 +2,12 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.model.Pagination;
 
 import java.util.List;
 
@@ -38,6 +42,9 @@ public class ItemRequestController {
                                           @RequestParam(defaultValue = "0") Integer from,
                                           @RequestParam(required = false) Integer size) {
         log.info("Getting requests by pages");
-        return itemRequestService.findByPages(requesterId, from, size);
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("created").descending());
+        return itemRequestService.findByPages(requesterId, pageable);
     }
 }
