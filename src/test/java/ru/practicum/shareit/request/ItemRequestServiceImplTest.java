@@ -32,7 +32,8 @@ public class ItemRequestServiceImplTest {
 
     @BeforeEach
     void beforeEach() {
-        itemRequestService = new ItemRequestServiceImpl(mockItemRequestRepository, mockUserService, null);
+        itemRequestService = new ItemRequestServiceImpl(mockItemRequestRepository, mockUserService, null,
+                null, null);
     }
 
     @Test

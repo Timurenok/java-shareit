@@ -18,7 +18,6 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -109,7 +108,7 @@ public class ItemRequestControllerTest {
 
     @Test
     void shouldFindItemRequestsByPages() throws Exception {
-        when(itemRequestService.findByPages(any(Long.class), any(Integer.class), nullable(Integer.class)))
+        when(itemRequestService.findByPages(any(Long.class), any()))
                 .thenReturn(List.of(itemRequestDto));
 
         mvc.perform(get("/requests/all")

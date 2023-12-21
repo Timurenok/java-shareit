@@ -10,7 +10,6 @@ import ru.practicum.shareit.exception.UsedEmailException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
             throw new UsedEmailException(String.format("User with email %s already exists", user.getEmail()));
         }
         userRepository.save(user);
-        return UserMapper.mapToUserDto(user);
+        return userMapper.userToUserDto(user);
     }
 
     @Override
@@ -55,30 +55,27 @@ public class UserServiceImpl implements UserService {
             }
         }
         userRepository.save(user);
-        return UserMapper.mapToUserDto(user);
+        return userMapper.userToUserDto(user);
     }
 
     @Override
     @Transactional
     public UserDto find(Long id) {
-        return UserMapper.mapToUserDto(userRepository.findById(id).orElseThrow(() -> new UnknownUserException(
+        return userMapper.userToUserDto(userRepository.findById(id).orElseThrow(() -> new UnknownUserException(
                 String.format("User with id %d does not exist", id))));
     }
 
     @Override
     @Transactional
     public List<UserDto> findAll() {
-        return userRepository.findAll().stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(userMapper::userToUserDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public UserDto remove(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            userRepository.deleteById(id);
-            return UserMapper.mapToUserDto(user.get());
-        }
-        throw new UnknownUserException(String.format("User with id %d does not exist", id));
+        UserDto userDto = find(id);
+        userRepository.deleteById(id);
+        return userDto;
     }
 }

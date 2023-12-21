@@ -2,9 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -17,7 +15,6 @@ import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.request.model.Pagination;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
@@ -32,15 +29,18 @@ import static java.util.stream.Collectors.toList;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
+    private final BookingMapper bookingMapper;
     private final ItemService itemService;
     private final UserService userService;
+    private final UserMapper userMapper;
+    private final ItemMapper itemMapper;
 
     @Override
     @Transactional
     public BookingDto save(BookingInputDto bookingInputDto, Long bookerId) {
         Booking booking = check(bookingInputDto, bookerId);
         bookingRepository.save(booking);
-        return BookingMapper.mapToBookingDto(booking);
+        return bookingMapper.mapToBookingDto(booking);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(BookingStatus.REJECTED);
         }
         bookingRepository.save(booking);
-        return BookingMapper.mapToBookingDto(booking);
+        return bookingMapper.mapToBookingDto(booking);
     }
 
     @Override
@@ -72,49 +72,43 @@ public class BookingServiceImpl implements BookingService {
         userService.find(userId);
         if (booking.getBooker().getId().equals(userId) ||
                 booking.getItem().getOwnerId().equals(userId)) {
-            return BookingMapper.mapToBookingDto(booking);
+            return bookingMapper.mapToBookingDto(booking);
         }
         throw new UnknownUserException("You don't have abilities to see this booking");
     }
 
     @Override
     @Transactional
-    public List<BookingDto> findByUserId(Long bookerId, String state, Integer from, Integer size) {
+    public List<BookingDto> findByUserId(Long bookerId, String state, Pageable pageable) {
         userService.find(bookerId);
-        Pagination pagination = new Pagination(from, size);
-        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
-                Sort.by("start").descending());
         Page<Booking> page = findByUserIdByPages(bookerId, state, pageable);
-        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
+        return page.stream().map(bookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
     @Transactional
-    public List<BookingDto> findByOwnerId(Long ownerId, String state, Integer from, Integer size) {
+    public List<BookingDto> findByOwnerId(Long ownerId, String state, Pageable pageable) {
         userService.find(ownerId);
-        Pagination pagination = new Pagination(from, size);
-        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
-                Sort.by("start").descending());
         Page<Booking> page = findByOwnerIdByPages(ownerId, state, pageable);
-        return page.stream().map(BookingMapper::mapToBookingDto).collect(toList());
+        return page.stream().map(bookingMapper::mapToBookingDto).collect(toList());
     }
 
     @Override
     public BookingShortDto findLastBooking(Long itemId) {
-        return BookingMapper.mapToBookingShortDto(
+        return bookingMapper.mapToBookingShortDto(
                 bookingRepository.findFirstByItemIdAndStartIsBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
     }
 
     @Override
     public BookingShortDto findNextBooking(Long itemId) {
-        return BookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(
+        return bookingMapper.mapToBookingShortDto(bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusInOrderByStartAsc(
                 itemId,
                 LocalDateTime.now(), List.of(BookingStatus.WAITING, BookingStatus.APPROVED)));
     }
 
     @Override
     public BookingDto findBookingWithUserBookedItem(Long itemId, Long userId) {
-        return BookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(
+        return bookingMapper.mapToBookingDto(bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(
                 itemId,
                 userId,
                 LocalDateTime.now(), BookingStatus.APPROVED));
@@ -122,11 +116,11 @@ public class BookingServiceImpl implements BookingService {
 
     private Booking check(BookingInputDto bookingInputDto, Long bookerId) {
         Booking booking = new Booking();
-        User booker = UserMapper.mapToUser(userService.find(bookerId));
+        User booker = userMapper.userDtoToUser(userService.find(bookerId));
         ItemDto itemDto = itemService.find(bookingInputDto.getItemId(), bookerId);
         booking.setStart(bookingInputDto.getStart());
         booking.setEnd(bookingInputDto.getEnd());
-        booking.setItem(ItemMapper.mapToItem(itemDto));
+        booking.setItem(itemMapper.mapToItem(itemDto));
         booking.setBooker(booker);
         booking.setStatus(BookingStatus.WAITING);
         if (itemDto.getOwnerId().equals(bookerId)) {

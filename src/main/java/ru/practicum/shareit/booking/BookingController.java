@@ -2,9 +2,13 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingInputDto;
+import ru.practicum.shareit.request.model.Pagination;
 
 import java.util.List;
 
@@ -44,7 +48,10 @@ public class BookingController {
                                          @RequestParam(defaultValue = "0") Integer from,
                                          @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of booker with id {}", userId);
-        return bookingService.findByUserId(userId, state, from, size);
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        return bookingService.findByUserId(userId, state, pageable);
     }
 
     @GetMapping("/owner")
@@ -54,6 +61,9 @@ public class BookingController {
                                           @RequestParam(defaultValue = "0") Integer from,
                                           @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of owner with id {}", userId);
-        return bookingService.findByOwnerId(userId, state, from, size);
+        Pagination pagination = new Pagination(from, size);
+        Pageable pageable = PageRequest.of(pagination.getIndex(), pagination.getPageSize(),
+                Sort.by("start").descending());
+        return bookingService.findByOwnerId(userId, state, pageable);
     }
 }

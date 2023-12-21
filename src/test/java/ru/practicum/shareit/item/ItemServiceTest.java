@@ -29,6 +29,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ItemServiceTest {
+    private final ItemMapper itemMapper;
+
+    private final UserMapper userMapper;
+
     private final ItemService itemService;
 
     private final UserService userService;
@@ -48,7 +52,7 @@ public class ItemServiceTest {
     @Test
     void shouldCreateItem() {
         UserDto userDto = userService.save(user);
-        ItemDto returnItemDto = itemService.save(ItemMapper.mapToItem(itemDto), userDto.getId());
+        ItemDto returnItemDto = itemService.save(itemMapper.mapToItem(itemDto), userDto.getId());
         assertThat(returnItemDto.getDescription(), equalTo(itemDto.getDescription()));
     }
 
@@ -56,20 +60,20 @@ public class ItemServiceTest {
     void shouldThrowExceptionWhenUpdateItemByUserNotOwner() {
         UserDto ownerDto = userService.save(user);
         UserDto newUserDto = userService.save(newUser);
-        ItemDto returnItemDto = itemService.save(ItemMapper.mapToItem(itemDto), ownerDto.getId());
+        ItemDto returnItemDto = itemService.save(itemMapper.mapToItem(itemDto), ownerDto.getId());
         UnknownUserException exception = assertThrows(UnknownUserException.class,
-                () -> itemService.update(returnItemDto.getId(), ItemMapper.mapToItem(newItemDto), newUserDto.getId()));
+                () -> itemService.update(returnItemDto.getId(), itemMapper.mapToItem(newItemDto), newUserDto.getId()));
         assertEquals("You don't have an ability to change this item", exception.getMessage());
     }
 
     @Test
     void shouldUpdateItem() {
         UserDto userDto = userService.save(user);
-        ItemDto returnItemDto = itemService.save(ItemMapper.mapToItem(itemDto), userDto.getId());
+        ItemDto returnItemDto = itemService.save(itemMapper.mapToItem(itemDto), userDto.getId());
         returnItemDto.setName("newItem");
         returnItemDto.setDescription("newDescription");
         returnItemDto.setAvailable(false);
-        returnItemDto = itemService.update(returnItemDto.getId(), ItemMapper.mapToItem(returnItemDto), userDto.getId());
+        returnItemDto = itemService.update(returnItemDto.getId(), itemMapper.mapToItem(returnItemDto), userDto.getId());
         assertThat(returnItemDto.getName(), equalTo("newItem"));
         assertThat(returnItemDto.getDescription(), equalTo("newDescription"));
         assertFalse(returnItemDto.getAvailable());
@@ -78,8 +82,8 @@ public class ItemServiceTest {
     @Test
     void shouldReturnItemsByOwner() {
         UserDto ownerDto = userService.save(user);
-        itemService.save(ItemMapper.mapToItem(itemDto), ownerDto.getId());
-        itemService.save(ItemMapper.mapToItem(newItemDto), ownerDto.getId());
+        itemService.save(itemMapper.mapToItem(itemDto), ownerDto.getId());
+        itemService.save(itemMapper.mapToItem(newItemDto), ownerDto.getId());
         List<ItemDto> listItems = itemService.findByUserId(ownerDto.getId());
         assertEquals(2, listItems.size());
     }
@@ -87,8 +91,8 @@ public class ItemServiceTest {
     @Test
     void shouldReturnItemsByText() {
         UserDto ownerDto = userService.save(user);
-        itemService.save(ItemMapper.mapToItem(itemDto), ownerDto.getId());
-        itemService.save(ItemMapper.mapToItem(newItemDto), ownerDto.getId());
+        itemService.save(itemMapper.mapToItem(itemDto), ownerDto.getId());
+        itemService.save(itemMapper.mapToItem(newItemDto), ownerDto.getId());
         List<ItemDto> listItems = itemService.findByText("item");
         assertEquals(2, listItems.size());
     }
@@ -97,7 +101,7 @@ public class ItemServiceTest {
     void shouldCreateComment() {
         UserDto ownerDto = userService.save(user);
         UserDto newUserDto = userService.save(newUser);
-        ItemDto returnItemDto = itemService.save(ItemMapper.mapToItem(itemDto), ownerDto.getId());
+        ItemDto returnItemDto = itemService.save(itemMapper.mapToItem(itemDto), ownerDto.getId());
         BookingInputDto bookingInputDto = new BookingInputDto(
                 returnItemDto.getId(),
                 LocalDateTime.now().plusSeconds(3),
@@ -109,8 +113,8 @@ public class ItemServiceTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        Comment comment = new Comment(1L, "comment", ItemMapper.mapToItem(returnItemDto),
-                UserMapper.mapToUser(newUserDto), LocalDateTime.now());
+        Comment comment = new Comment(1L, "comment", itemMapper.mapToItem(returnItemDto),
+                userMapper.userDtoToUser(newUserDto), LocalDateTime.now());
         itemService.saveComment(returnItemDto.getId(), newUserDto.getId(), comment);
         Assertions.assertEquals(1, itemService.findCommentsByItemId(returnItemDto.getId()).size());
     }

@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -9,34 +9,12 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class ItemMapper {
+@Mapper(componentModel = "spring")
+public interface ItemMapper {
 
-    public static ItemDto mapToItemDto(Item item,
-                                       BookingShortDto lastBooking,
-                                       BookingShortDto nextBooking,
-                                       List<CommentDto> comments) {
-        return new ItemDto(
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getAvailable(),
-                item.getOwnerId(),
-                item.getRequestId(),
-                lastBooking,
-                nextBooking,
-                comments);
-    }
+    @Mapping(target = "id", source = "item.id")
+    ItemDto mapToItemDto(Item item, BookingShortDto lastBooking, BookingShortDto nextBooking,
+                         List<CommentDto> comments);
 
-    public static Item mapToItem(ItemDto itemDto) {
-        return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                itemDto.getOwnerId(),
-                itemDto.getRequestId()
-        );
-    }
+    Item mapToItem(ItemDto itemDto);
 }
