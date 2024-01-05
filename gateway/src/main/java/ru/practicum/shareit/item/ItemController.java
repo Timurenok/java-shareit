@@ -2,22 +2,24 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping(path = "/items")
 public class ItemController {
     private final ItemClient itemClient;
 
+    @ResponseBody
     @PostMapping
     public ResponseEntity<Object> saveItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                            @RequestBody ItemDto itemDto) {
-        log.info("Creating item {}", item);
+        log.info("Creating item {}", itemDto);
         return itemClient.saveItem(userId, itemDto);
     }
 
@@ -28,6 +30,7 @@ public class ItemController {
         return itemClient.findItemById(userId, id);
     }
 
+    @ResponseBody
     @PatchMapping("/{id}")
     public ResponseEntity<Object> updateItem(@RequestBody ItemDto itemDto, @PathVariable Long id,
                                              @RequestHeader("X-Sharer-User-Id") Long userId) {
@@ -57,6 +60,6 @@ public class ItemController {
                                               @RequestHeader("X-Sharer-User-Id") Long userId,
                                               @PathVariable Long id) {
         log.info("Creating comment {}", commentDto);
-        return itemClient.createComment(commentDto, id, userId);
+        return itemClient.saveComment(commentDto, id, userId);
     }
 }

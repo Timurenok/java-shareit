@@ -2,8 +2,6 @@ package ru.practicum.shareit.user;
 
 import lombok.*;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
 import java.util.Objects;
 
 @Getter
@@ -22,7 +20,6 @@ public class User {
     @Column(name = "name")
     private String name;
 
-    @Email
     @Column(name = "email")
     private String email;
 

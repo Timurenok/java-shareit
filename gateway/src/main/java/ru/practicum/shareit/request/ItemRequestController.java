@@ -4,26 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
-import javax.validation.Valid;
-import javax.validation.constraints.PositiveOrZero;
-
-
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final ItemRequestClient itemRequestClient;
 
+    @ResponseBody
     @PostMapping
     public ResponseEntity<Object> saveItemRequest(@RequestBody ItemRequestDto itemRequestDto,
                                                   @RequestHeader("X-Sharer-User-Id") Long requesterId) {
         log.info("Creating request {}", itemRequestDto);
-        return itemRequestClient.saveItemRequest(itemRequestDto, requestorId);
+        return itemRequestClient.saveItemRequest(itemRequestDto, requesterId);
     }
 
     @GetMapping("/{id}")
@@ -35,9 +31,9 @@ public class ItemRequestController {
 
 
     @GetMapping
-    public ResponseEntity<Object> findOwnItemRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("Getting requests by requestId {}", requesterId);
-        return itemRequestClient.findOwnItemRequests(userId);
+    public ResponseEntity<Object> findItemRequestsByOwnerId(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+        log.info("Getting requests by requestId {}", ownerId);
+        return itemRequestClient.findOwnItemRequests(ownerId);
     }
 
     @GetMapping("/all")

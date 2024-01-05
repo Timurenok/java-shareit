@@ -2,15 +2,14 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.RestController;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookInputDto;
+import ru.practicum.shareit.booking.dto.BookingInputDto;
 import ru.practicum.shareit.booking.model.BookingState;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
@@ -25,10 +24,13 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> findBookingsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                       @RequestParam(name = "state", defaultValue = "all") String stateParam,
+                                                       @RequestParam(name = "state", defaultValue = "all")
+                                                       String stateParam,
                                                        @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                        @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of booker with id {}", userId);
+        BookingState state = BookingState.mapToBookingState(stateParam)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
         return bookingClient.findBookingsByUserId(userId, state, from, size);
     }
 
@@ -39,6 +41,8 @@ public class BookingController {
                                                         @RequestParam(defaultValue = "0") Integer from,
                                                         @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of owner with id {}", userId);
+        BookingState state = BookingState.mapToBookingState(stateParam)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
         return bookingClient.findBookingsByOwnerId(userId, state, from, size);
     }
 
@@ -46,7 +50,7 @@ public class BookingController {
     public ResponseEntity<Object> findBookingById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                   @PathVariable Long id) {
         log.info("Getting booking with id {}", id);
-        return bookingClient.findBookingById(userId, bookingId);
+        return bookingClient.findBookingById(userId, id);
     }
 
     @ResponseBody
