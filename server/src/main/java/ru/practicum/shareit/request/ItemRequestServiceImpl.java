@@ -45,6 +45,17 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     @Transactional
+    public ItemRequestDto findById(Long userId, Long id) {
+        userService.find(userId);
+        return itemRequestMapper.itemRequestToItemRequestDto(itemRequestRepository.findById(id).orElseThrow(() ->
+                        new UnknownItemRequestException(String.format("Request with id %d does not exist", id))),
+                itemRepository.findByRequestId(id).stream()
+                        .map(item -> itemMapper.mapToItemDto(item, null, null, null))
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional
     public List<ItemRequestDto> findByRequesterId(Long requesterId) {
         userService.find(requesterId);
         return itemRequestRepository.findByRequesterIdOrderByCreatedDesc(requesterId).stream()
@@ -67,16 +78,5 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                                         .mapToItemDto(item, null, null, null))
                                 .collect(Collectors.toList())))
                 .collect(toList());
-    }
-
-    @Override
-    @Transactional
-    public ItemRequestDto findById(Long requesterId, Long id) {
-        userService.find(requesterId);
-        return itemRequestMapper.itemRequestToItemRequestDto(itemRequestRepository.findById(id).orElseThrow(() ->
-                        new UnknownItemRequestException(String.format("Request with id %d does not exist", id))),
-                itemRepository.findByRequestId(id).stream()
-                        .map(item -> itemMapper.mapToItemDto(item, null, null, null))
-                        .collect(Collectors.toList()));
     }
 }

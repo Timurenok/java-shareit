@@ -12,7 +12,6 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 @Service
 public class ItemRequestClient extends BaseClient {
-    private static final String API_PREFIX = "/requests";
 
     @Autowired
     public ItemRequestClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
@@ -28,8 +27,8 @@ public class ItemRequestClient extends BaseClient {
         return post("", requesterId, requestDto);
     }
 
-    public ResponseEntity<Object> findItemRequestById(Long userId, Long requestId) {
-        return get("/" + requestId, userId);
+    public ResponseEntity<Object> findItemRequestById(Long userId, Long id) {
+        return get("/" + id, userId);
     }
 
     public ResponseEntity<Object> findOwnItemRequests(Long userId) {

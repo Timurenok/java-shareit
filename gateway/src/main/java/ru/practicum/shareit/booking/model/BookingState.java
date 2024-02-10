@@ -1,16 +1,14 @@
 package ru.practicum.shareit.booking.model;
 
-import java.util.Optional;
-
 public enum BookingState {
-    ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED;
+    ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED, UNSUPPORTED_STATUS;
 
-    public static Optional<BookingState> mapToBookingState(String stringState) {
+    public static BookingState mapToBookingState(String stringState) {
         for (BookingState state : values()) {
-            if (state.name().equalsIgnoreCase(stringState)) {
-                return Optional.of(state);
+            if (state.toString().equalsIgnoreCase(stringState)) {
+                return state;
             }
         }
-        return Optional.empty();
+        return UNSUPPORTED_STATUS;
     }
 }

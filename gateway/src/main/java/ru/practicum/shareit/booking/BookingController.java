@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingInputDto;
-import ru.practicum.shareit.booking.model.BookingState;
 
 @Slf4j
 @Controller
@@ -25,24 +24,20 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<Object> findBookingsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                        @RequestParam(name = "state", defaultValue = "all")
-                                                       String stateParam,
+                                                       String state,
                                                        @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                        @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of booker with id {}", userId);
-        BookingState state = BookingState.mapToBookingState(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
         return bookingClient.findBookingsByUserId(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> findBookingsByOwnerId(@RequestParam(name = "state", defaultValue = "all")
-                                                        String stateParam,
+                                                        String state,
                                                         @RequestHeader("X-Sharer-User-Id") Long userId,
                                                         @RequestParam(defaultValue = "0") Integer from,
                                                         @RequestParam(required = false) Integer size) {
         log.info("Getting bookings of owner with id {}", userId);
-        BookingState state = BookingState.mapToBookingState(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
         return bookingClient.findBookingsByOwnerId(userId, state, from, size);
     }
 

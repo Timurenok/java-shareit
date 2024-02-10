@@ -99,7 +99,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public List<ItemDto> findByUserId(Long userId) {
-        return itemRepository.findByOwnerId(userId).stream()
+        return itemRepository.findByOwnerIdOrderById(userId).stream()
                 .map(item -> find(item.getId(), userId))
                 .collect(Collectors.toList());
     }

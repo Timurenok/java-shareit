@@ -149,20 +149,20 @@ public class BookingServiceImpl implements BookingService {
 
     private Page<Booking> findByUserIdByPages(Long bookerId, String state, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
-        if (state.equals(BookingState.ALL.toString())) {
+        if (state.equalsIgnoreCase(BookingState.ALL.toString())) {
             return bookingRepository.findByBookerId(bookerId, pageable);
         }
-        if (state.equals(BookingState.CURRENT.toString())) {
+        if (state.equalsIgnoreCase(BookingState.CURRENT.toString())) {
             return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
                     bookerId, now, now, pageable);
         }
-        if (state.equals(BookingState.PAST.toString())) {
+        if (state.equalsIgnoreCase(BookingState.PAST.toString())) {
             return bookingRepository.findByBookerIdAndEndIsBeforeOrderByEndDesc(bookerId, now, pageable);
         }
-        if (state.equals(BookingState.FUTURE.toString())) {
+        if (state.equalsIgnoreCase(BookingState.FUTURE.toString())) {
             return bookingRepository.findByBookerIdAndStartIsAfter(bookerId, now, pageable);
         }
-        if (state.equals(BookingState.WAITING.toString()) ||
+        if (state.equalsIgnoreCase(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
             return bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.valueOf(state), pageable);
         }
@@ -171,20 +171,20 @@ public class BookingServiceImpl implements BookingService {
 
     private Page<Booking> findByOwnerIdByPages(Long ownerId, String state, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
-        if (state.equals(BookingState.ALL.toString())) {
+        if (state.equalsIgnoreCase(BookingState.ALL.toString())) {
             return bookingRepository.findByItemOwnerId(ownerId, pageable);
         }
-        if (state.equals(BookingState.CURRENT.toString())) {
+        if (state.equalsIgnoreCase(BookingState.CURRENT.toString())) {
             return bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(
                     ownerId, now, now, pageable);
         }
-        if (state.equals(BookingState.PAST.toString())) {
+        if (state.equalsIgnoreCase(BookingState.PAST.toString())) {
             return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByEndDesc(ownerId, now, pageable);
         }
-        if (state.equals(BookingState.FUTURE.toString())) {
+        if (state.equalsIgnoreCase(BookingState.FUTURE.toString())) {
             return bookingRepository.findByItemOwnerIdAndStartIsAfter(ownerId, now, pageable);
         }
-        if (state.equals(BookingState.WAITING.toString()) ||
+        if (state.equalsIgnoreCase(BookingState.WAITING.toString()) ||
                 state.equals(BookingState.REJECTED.toString())) {
             return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.valueOf(state), pageable);
         }

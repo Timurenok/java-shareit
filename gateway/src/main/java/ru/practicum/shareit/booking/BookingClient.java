@@ -10,6 +10,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingInputDto;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.client.BaseClient;
+import ru.practicum.shareit.exception.InvalidStateException;
 
 @Service
 public class BookingClient extends BaseClient {
@@ -22,16 +23,18 @@ public class BookingClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> findBookingsByUserId(Long userId, BookingState state, Integer from, Integer size) {
-        String path = "?state=" + state.name() + "&from=" + from;
+    public ResponseEntity<Object> findBookingsByUserId(Long userId, String state, Integer from, Integer size) {
+        validateState(state);
+        String path = "?state=" + state + "&from=" + from;
         if (size != null) {
             path += "&size=" + size;
         }
         return get(path, userId, null);
     }
 
-    public ResponseEntity<Object> findBookingsByOwnerId(Long userId, BookingState state, Integer from, Integer size) {
-        String path = "/owner?state=" + state.name() + "&from=" + from;
+    public ResponseEntity<Object> findBookingsByOwnerId(Long userId, String state, Integer from, Integer size) {
+        validateState(state);
+        String path = "/owner?state=" + state + "&from=" + from;
         if (size != null) {
             path += "&size=" + size;
         }
@@ -50,5 +53,11 @@ public class BookingClient extends BaseClient {
     public ResponseEntity<Object> updateBooking(Long bookingId, Long userId, Boolean approved) {
         String path = "/" + bookingId + "?approved=" + approved;
         return patch(path, userId, null, null);
+    }
+
+    private void validateState(String state) {
+        if (BookingState.mapToBookingState(state).equals(BookingState.UNSUPPORTED_STATUS)) {
+            throw new InvalidStateException("Unknown state: " + state);
+        }
     }
 }

@@ -25,10 +25,10 @@ public class ItemRequestController {
         return itemRequestService.save(requesterId, itemRequestDto);
     }
 
-    @GetMapping("{id}")
-    public ItemRequestDto findRequest(@RequestHeader("X-Sharer-User-Id") Long requesterId, @PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ItemRequestDto findRequest(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long id) {
         log.info("Getting request by id {}", id);
-        return itemRequestService.findById(requesterId, id);
+        return itemRequestService.findById(userId, id);
     }
 
     @GetMapping
